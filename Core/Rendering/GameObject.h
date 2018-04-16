@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include "../Transform.h"
 #include "MeshRenderer.h"
@@ -11,7 +12,7 @@ private:
 	std::vector<GameObject*> m_Children;
 public:
 	MeshRenderer* meshRenderer;
-	Transform* transform;
+	Transform transform;
 	
 	GameObject();
 	~GameObject();
@@ -20,4 +21,5 @@ public:
 	virtual void Render();
 	
 	void AddChild(GameObject* _child);
+	void RemoveChild(GameObject* _child);
 };

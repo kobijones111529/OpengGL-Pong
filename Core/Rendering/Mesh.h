@@ -19,6 +19,8 @@ public:
 	Mesh();
 	~Mesh();
 	
+	//std::vector<glm::vec3>
+	
 	void SetVertices(const Vertex* _vertices, const unsigned int* _indices, unsigned int _vertexCount, unsigned int _indexCount);
 	void Draw();
 };

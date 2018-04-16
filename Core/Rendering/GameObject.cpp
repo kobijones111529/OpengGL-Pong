@@ -1,7 +1,12 @@
 #include "GameObject.h"
 
 GameObject::GameObject() { }
-GameObject::~GameObject() { }
+
+GameObject::~GameObject() {
+	for(GameObject* child : m_Children) {
+		child->m_Parent = NULL;
+	}
+}
 
 void GameObject::Update() {
 	for(GameObject* child : m_Children) {
@@ -26,4 +31,12 @@ void GameObject::Render() {
 void GameObject::AddChild(GameObject* _child) {
 	m_Children.push_back(_child);
 	_child->m_Parent = this;
+}
+
+void GameObject::RemoveChild(GameObject* _child) {
+	std::vector<GameObject*>::iterator it = std::find(m_Children.begin(), m_Children.end(), _child);
+	if(it != m_Children.end()) {
+		m_Children.erase(it);
+		(*it)->m_Parent = NULL;
+	}
 }

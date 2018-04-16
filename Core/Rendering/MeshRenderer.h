@@ -14,6 +14,6 @@ public:
 	MeshRenderer();
 	~MeshRenderer();
 	
-	void Update(const Transform* _transform);
-	void Render(const Transform* _transform);
+	void Update(Transform _transform);
+	void Render(Transform _transform);
 };

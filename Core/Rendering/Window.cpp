@@ -10,25 +10,35 @@ void Window::WindowSizeCallback(GLFWwindow* _window, int _width, int _height) {
 	
 	windowUserPointer->m_Width = _width;
 	windowUserPointer->m_Height = _height;
+	
+	for(UserCallback<void(*)(int, int, void*)> callback : windowUserPointer->m_UserWindowSizeCallbackArray) {
+		callback.callback(_width, _height, callback.instance);
+	}
 }
 
 void Window::FramebufferSizeCallback(GLFWwindow* _window, int _width, int _height) {
+	Window* windowUserPointer = (Window*)glfwGetWindowUserPointer(_window);
+	
 	glViewport(0, 0, _width, _height);
+	
+	for(UserCallback<void(*)(int, int, void*)> callback : windowUserPointer->m_UserFramebufferSizeCallbackArray) {
+		callback.callback(_width, _height, callback.instance);
+	}
 }
 
 void Window::CursorPosCallback(GLFWwindow* _window, double _x, double _y) {
+	Window* windowUserPointer = (Window*)glfwGetWindowUserPointer(_window);
+	
 	m_CursorX = _x;
 	m_CursorY = _y;
+	
+	for(UserCallback<void(*)(double, double, void*)> callback : windowUserPointer->m_UserCursorPosCallbackArray) {
+		callback.callback(_x, _y, callback.instance);
+	}
 }
 
 void Window::KeyCallback(GLFWwindow* _window, int _key, int _scancode, int _action, int _mods) {
 	Window* windowUserPointer = (Window*)glfwGetWindowUserPointer(_window);
-	
-	if(_action == GLFW_PRESS) {
-		if(_key == GLFW_KEY_SPACE) {
-			windowUserPointer->m_ControlState = (ControlState)(((int)windowUserPointer->m_ControlState + 1) % windowUserPointer->m_ControlStates);
-		}
-	}
 	
 	if(_action == GLFW_PRESS || _action == GLFW_REPEAT) {
 		if(_key == GLFW_KEY_ESCAPE) {
@@ -40,14 +50,44 @@ void Window::KeyCallback(GLFWwindow* _window, int _key, int _scancode, int _acti
 	} else {
 		m_Keys[_key] = false;
 	}
+	
+	for(UserCallback<void(*)(int, int, int, int, void*)> callback : windowUserPointer->m_UserKeyCallbackArray) {
+		callback.callback(_key, _scancode, _action, _mods, callback.instance);
+	}
 }
 
 void Window::MouseButtonCallback(GLFWwindow *_window, int _button, int _action, int _mods) {
+	Window* windowUserPointer = (Window*)glfwGetWindowUserPointer(_window);
+	
 	if(_action == GLFW_PRESS) {
 		m_MouseButtons[_button] = true;
 	} else {
 		m_MouseButtons[_button] = false;
 	}
+	
+	for(UserCallback<void(*)(int, int, int, void*)> callback : windowUserPointer->m_UserMouseButtonCallbackArray) {
+		callback.callback(_button, _action, _mods, callback.instance);
+	}
+}
+
+void Window::AddUserWindowSizeCallback(void(*_callback)(int, int, void*), void* _instance) {
+	m_UserWindowSizeCallbackArray.push_back({ _callback, _instance });
+}
+
+void Window::AddUserFramebufferSizeCallback(void(*_callback)(int, int, void*), void* _instance) {
+	m_UserFramebufferSizeCallbackArray.push_back({ _callback, _instance });
+}
+
+void Window::AddUserCursorPosCallback(void(*_callback)(double, double, void*), void* _instance) {
+	m_UserCursorPosCallbackArray.push_back({ _callback, _instance });
+}
+
+void Window::AddUserKeyCallback(void(*_callback)(int, int, int, int, void*), void* _instance) {
+	m_UserKeyCallbackArray.push_back({ _callback, _instance });
+}
+
+void Window::AddUserMouseButtonCallback(void(*_callback)(int, int, int, void*), void* _instance) {
+	m_UserMouseButtonCallbackArray.push_back({ _callback, _instance });
 }
 
 Window::Window() { }

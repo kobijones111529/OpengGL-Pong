@@ -8,6 +8,6 @@ public:
 	Component();
 	~Component();
 	
-	virtual void Update(const Transform* _transform) = 0;
-	virtual void Render(const Transform* _transform) = 0;
+	virtual void Update(Transform _transform) = 0;
+	virtual void Render(Transform _transform) = 0;
 };
