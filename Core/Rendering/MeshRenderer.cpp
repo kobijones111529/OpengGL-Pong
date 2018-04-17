@@ -10,7 +10,6 @@ void MeshRenderer::Render(Transform _transform) {
 		shader->SetUniformMat4fv("u_Model", &_transform.GetTransformation()[0][0]);
 		shader->Use();
 	}
-	if(mesh) {
-		mesh->Draw();
-	}
+	
+	mesh.Draw();
 }

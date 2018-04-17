@@ -13,13 +13,11 @@ class Mesh {
 private:
 	unsigned int m_VBO;
 	unsigned int m_IBO;
-	unsigned int m_VertexCount;
-	unsigned int m_IndexCount;
+	unsigned int m_VertexCount = 0;
+	unsigned int m_IndexCount = 0;
 public:
 	Mesh();
 	~Mesh();
-	
-	//std::vector<glm::vec3>
 	
 	void SetVertices(const Vertex* _vertices, const unsigned int* _indices, unsigned int _vertexCount, unsigned int _indexCount);
 	void Draw();

@@ -13,5 +13,5 @@ void Quad::UpdateMesh() {
 	
 	std::vector<unsigned int> indices { 0, 1, 2, 2, 3, 0 };
 	
-	meshRenderer->mesh->SetVertices(&vertices[0], &indices[0], 4, 6);
+	GetComponent<MeshRenderer>()->mesh.SetVertices(&vertices[0], &indices[0], 4, 6);
 }

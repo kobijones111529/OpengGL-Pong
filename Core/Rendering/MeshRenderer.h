@@ -8,7 +8,8 @@
 class MeshRenderer : public Component {
 private:
 public:
-	Mesh* mesh;
+	static const ComponentType type = ComponentType::MESH_RENDERER;
+	Mesh mesh;
 	Shader* shader;
 	
 	MeshRenderer();

@@ -75,9 +75,9 @@ void Game::Run() {
 	leftPaddle->width = 0.05f;
 	leftPaddle->height = 0.5f;
 	leftPaddle->transform.translation.x = -1.0f;
-	leftPaddle->meshRenderer = new MeshRenderer;
-	leftPaddle->meshRenderer->shader = shader;
-	leftPaddle->meshRenderer->mesh = new Mesh;
+	leftPaddle->AddComponent<MeshRenderer>();
+	leftPaddle->GetComponent<MeshRenderer>()->shader = shader;
+	//leftPaddle->GetComponent<MeshRenderer>()->mesh = new Mesh;
 	leftPaddle->UpdateMesh();
 	
 	rightPaddle = new Paddle;
@@ -85,17 +85,18 @@ void Game::Run() {
 	rightPaddle->width = 0.05f;
 	rightPaddle->height = 0.5f;
 	rightPaddle->transform.translation.x = 0.95f;
-	rightPaddle->meshRenderer = new MeshRenderer;
-	rightPaddle->meshRenderer->shader = shader;
-	rightPaddle->meshRenderer->mesh = new Mesh;
+	rightPaddle->AddComponent<MeshRenderer>();
+	rightPaddle->GetComponent<MeshRenderer>()->shader = shader;
+	//rightPaddle->GetComponent<MeshRenderer>()->mesh = new Mesh;
 	rightPaddle->UpdateMesh();
 	
+	Mesh* ballMesh = new Mesh;
 	ball = new Ball;
 	ball->width = 0.05f;
 	ball->height = 0.05f;
-	ball->meshRenderer = new MeshRenderer;
-	ball->meshRenderer->shader = shader;
-	ball->meshRenderer->mesh = new Mesh;
+	ball->AddComponent<MeshRenderer>();
+	ball->GetComponent<MeshRenderer>()->shader = shader;
+	//ball->GetComponent<MeshRenderer>()->mesh = ballMesh;
 	ball->UpdateMesh();
 	
 	m_CurrentFrame = glfwGetTime();
@@ -110,16 +111,13 @@ void Game::Run() {
 		m_Window->Update();
 	}
 	
-	delete leftPaddle->meshRenderer->mesh;
-	delete leftPaddle->meshRenderer;
+	//delete leftPaddle->GetComponent<MeshRenderer>()->mesh;
 	delete leftPaddle;
 	
-	delete rightPaddle->meshRenderer->mesh;
-	delete rightPaddle->meshRenderer;
+	//delete rightPaddle->GetComponent<MeshRenderer>()->mesh;
 	delete rightPaddle;
 	
-	delete ball->meshRenderer->mesh;
-	delete ball->meshRenderer;
+	delete ballMesh;
 	delete ball;
 	
 	delete shader;
