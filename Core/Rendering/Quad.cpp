@@ -1,6 +1,7 @@
 #include "Quad.h"
 
 Quad::Quad() { }
+Quad::Quad(float _width, float _height, glm::vec4 _color) : width(_width), height(_height), color(_color)  { }
 Quad::~Quad() { }
 
 void Quad::UpdateMesh() {

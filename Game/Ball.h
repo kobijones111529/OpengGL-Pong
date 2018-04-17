@@ -14,5 +14,6 @@ public:
 	glm::vec3 velocity;
 	
 	Ball();
+	Ball(float _width, float _height, glm::vec4 _color);
 	~Ball();
 };

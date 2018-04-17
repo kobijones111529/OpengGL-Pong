@@ -10,7 +10,7 @@ private:
 public:
 	static const ComponentType type = ComponentType::MESH_RENDERER;
 	Mesh mesh;
-	Shader* shader;
+	Shader shader;
 	
 	MeshRenderer();
 	~MeshRenderer();

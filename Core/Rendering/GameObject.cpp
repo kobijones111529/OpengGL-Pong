@@ -33,10 +33,6 @@ void GameObject::Update() {
 	for(std::pair<unsigned int, Component*> component : m_Components) {
 		component.second->Update(transform);
 	}
-	
-	//if(meshRenderer) {
-		//meshRenderer->Update(transform);
-	//}
 }
 
 void GameObject::Render() {
@@ -47,10 +43,6 @@ void GameObject::Render() {
 	for(std::pair<unsigned int, Component*> component : m_Components) {
 		component.second->Render(transform);
 	}
-	
-	//if(meshRenderer) {
-		//meshRenderer->Render(transform);
-	//}
 }
 
 void GameObject::AddChild(GameObject* _child) {

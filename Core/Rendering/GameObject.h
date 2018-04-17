@@ -14,7 +14,6 @@ private:
 	std::vector<GameObject*> m_Children;
 	std::unordered_map<unsigned int, Component*> m_Components;
 public:
-	MeshRenderer* meshRenderer;
 	Transform transform;
 	
 	GameObject();

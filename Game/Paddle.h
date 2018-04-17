@@ -8,5 +8,6 @@ public:
 	float speed = 2.0f;
 	
 	Paddle();
+	Paddle(float _width, float _height, glm::vec4 _color);
 	~Paddle();
 };

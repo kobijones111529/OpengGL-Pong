@@ -3,30 +3,6 @@
 Game::Game() { }
 Game::~Game() { }
 
-void Game::KeyCallback(int _key, int _scancode, int _action, int _mods, void* _instance) {
-	Game* instance = (Game*)_instance;
-	
-	if(_key == GLFW_KEY_SPACE && _action == GLFW_PRESS) {
-		instance->m_ControlState = (ControlState)(((int)instance->m_ControlState + 1) % instance->m_ControlStates);
-	}
-}
-
-float Game::LeftPaddleVerticalOverlap() {
-	return (leftPaddle->transform.translation.x + leftPaddle->width) - (ball->transform.translation.x);
-}
-
-float Game::RightPaddleVerticalOverlap() {
-	return (ball->transform.translation.x + ball->width) - (rightPaddle->transform.translation.x);
-}
-
-float Game::LeftPaddleHorizontalOverlap() {
-	return (leftPaddle->transform.translation.y) - (ball->transform.translation.y - ball->height);
-}
-
-float Game::RightPaddleHorizontalOverlap() {
-	return (rightPaddle->transform.translation.y) - (ball->transform.translation.y - ball->height);
-}
-
 bool Game::Init() {
 	if(!glfwInit()) {
 		std::cerr << "GLFW Error: Failed to initialize!" << std::endl;
@@ -57,6 +33,9 @@ bool Game::Init() {
 	glDepthFunc(GL_LESS);
 	glEnable(GL_DEPTH_TEST);
 	
+	m_MainGame.Init(m_Window);
+	m_MainGame.SetControlState(MainGame::ControlState::KEYBOARD);
+	
 	return true;
 }
 
@@ -67,43 +46,11 @@ void Game::Destroy() {
 void Game::Run() {
 	srand((unsigned int)time(NULL));
 	
-	Shader* shader = new Shader;
-	shader->Init("BasicVertex.glsl", "BasicFragment.glsl");
-	
-	leftPaddle = new Paddle;
-	leftPaddle->speed = 2.0f;
-	leftPaddle->width = 0.05f;
-	leftPaddle->height = 0.5f;
-	leftPaddle->transform.translation.x = -1.0f;
-	leftPaddle->AddComponent<MeshRenderer>();
-	leftPaddle->GetComponent<MeshRenderer>()->shader = shader;
-	//leftPaddle->GetComponent<MeshRenderer>()->mesh = new Mesh;
-	leftPaddle->UpdateMesh();
-	
-	rightPaddle = new Paddle;
-	rightPaddle->speed = 2.0f;
-	rightPaddle->width = 0.05f;
-	rightPaddle->height = 0.5f;
-	rightPaddle->transform.translation.x = 0.95f;
-	rightPaddle->AddComponent<MeshRenderer>();
-	rightPaddle->GetComponent<MeshRenderer>()->shader = shader;
-	//rightPaddle->GetComponent<MeshRenderer>()->mesh = new Mesh;
-	rightPaddle->UpdateMesh();
-	
-	Mesh* ballMesh = new Mesh;
-	ball = new Ball;
-	ball->width = 0.05f;
-	ball->height = 0.05f;
-	ball->AddComponent<MeshRenderer>();
-	ball->GetComponent<MeshRenderer>()->shader = shader;
-	//ball->GetComponent<MeshRenderer>()->mesh = ballMesh;
-	ball->UpdateMesh();
-	
 	m_CurrentFrame = glfwGetTime();
 	m_LastFrame = m_CurrentFrame;
 	m_LastFrameLog = m_CurrentFrame;
 	
-	Reset();
+	m_MainGame.Run();
 	
 	while(!m_Window->IsClosed()) {
 		Update();
@@ -111,16 +58,7 @@ void Game::Run() {
 		m_Window->Update();
 	}
 	
-	//delete leftPaddle->GetComponent<MeshRenderer>()->mesh;
-	delete leftPaddle;
-	
-	//delete rightPaddle->GetComponent<MeshRenderer>()->mesh;
-	delete rightPaddle;
-	
-	delete ballMesh;
-	delete ball;
-	
-	delete shader;
+	m_MainGame.Destroy();
 }
 
 void Game::Update() {
@@ -133,170 +71,26 @@ void Game::Update() {
 		m_LastFrameLog = m_CurrentFrame;
 	}
 	
-	if(m_LastEvent == Event::RESET) {
-		if(glfwGetTime() - m_GameResetTime > 1.0) {
-			Start();
-		}
-	}
-	
-	if(m_LastEvent == Event::LOST) {
-		if(glfwGetTime() - m_GameLostTime > 1.0f) {
-			Reset();
-		} else {
-			UpdateBall();
-		}
-	}
-	
-	if(m_LastEvent == Event::START) {
-		UpdatePaddles();
-		UpdateBall();
-	}
-	
-	leftPaddle->UpdateMesh();
-	rightPaddle->UpdateMesh();
-	ball->UpdateMesh();
-	
-	leftPaddle->Update();
-	rightPaddle->Update();
-	ball->Update();
+	m_MainGame.Update(m_DeltaTime);
 }
 
 void Game::Render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
-	leftPaddle->Render();
-	rightPaddle->Render();
-	ball->Render();
+	m_MainGame.Render();
 }
 
-void Game::UpdatePaddles() {
-	leftPaddle->speed = std::abs(ball->velocity.x) * 1.5f;
-	rightPaddle->speed = std::abs(ball->velocity.x) * 1.5f;
+void Game::KeyCallback(int _key, int _scancode, int _action, int _mods, void* _instance) {
+	Game* instance = (Game*)_instance;
 	
-	if(m_ControlState == ControlState::KEYBOARD) {
-		if(Window::GetKey(GLFW_KEY_W) || Window::GetKey(GLFW_KEY_UP)) {
-			leftPaddle->transform.Translate(glm::vec3(0.0f, leftPaddle->speed * m_DeltaTime, 0.0f));
+	if(_key == GLFW_KEY_SPACE && _action == GLFW_PRESS) {
+		if(instance->m_MainGame.GetControlState() == MainGame::ControlState::KEYBOARD) {
+			instance->m_MainGame.SetControlState(MainGame::ControlState::MOUSE);
+		} else if(instance->m_MainGame.GetControlState() == MainGame::ControlState::MOUSE) {
+			instance->m_MainGame.SetControlState(MainGame::ControlState::KEYBOARD);
+		} else {
+			instance->m_MainGame.SetControlState(MainGame::ControlState::KEYBOARD);
 		}
-		if(Window::GetKey(GLFW_KEY_S) || Window::GetKey(GLFW_KEY_DOWN)) {
-			leftPaddle->transform.Translate(glm::vec3(0.0f, -leftPaddle->speed * m_DeltaTime, 0.0f));
-		}
-	} else if(m_ControlState == ControlState::MOUSE) {
-		double mouseYScreen = 1.0 - Window::GetCursorY() / m_Window->GetHeight() * 2.0;
-		if(leftPaddle->transform.translation.y < mouseYScreen + leftPaddle->height / 2.0f) {
-			if(leftPaddle->transform.translation.y + leftPaddle->speed * m_DeltaTime > mouseYScreen + leftPaddle->height / 2.0f) {
-				leftPaddle->transform.translation.y = mouseYScreen + leftPaddle->height / 2.0f;
-			} else {
-				leftPaddle->transform.translation.y += leftPaddle->speed * m_DeltaTime;
-			}
-		} else if(leftPaddle->transform.translation.y > mouseYScreen + leftPaddle->height / 2.0f) {
-			if(leftPaddle->transform.translation.y - leftPaddle->speed * m_DeltaTime < mouseYScreen + leftPaddle->height / 2.0f) {
-				leftPaddle->transform.translation.y = mouseYScreen + leftPaddle->height / 2.0f;
-			} else {
-				leftPaddle->transform.translation.y -= leftPaddle->speed * m_DeltaTime;
-			}
-		}
-	}
-	
-	if(leftPaddle->transform.translation.y > 1.0f) {
-		leftPaddle->transform.translation.y = 1.0f;
-	} else if(leftPaddle->transform.translation.y - leftPaddle->height < -1.0f) {
-		leftPaddle->transform.translation.y = -1.0f + leftPaddle->height;
-	}
-	
-	rightPaddle->transform.translation.y = leftPaddle->transform.translation.y;
-}
-
-void Game::UpdateBall() {
-	ball->transform.translation += ball->velocity * (float)m_DeltaTime;
-	
-	float leftPaddleVerticalOverlap = LeftPaddleVerticalOverlap();
-	float rightPaddleVerticalOverlap = RightPaddleVerticalOverlap();
-	float leftPaddleHorizontalOverlap = LeftPaddleHorizontalOverlap();
-	float rightPaddleHorizontalOverlap = RightPaddleHorizontalOverlap();
-	
-	if(ball->transform.translation.y > 1.0f) {
-		ball->transform.translation.y = 2.0 - ball->transform.translation.y;
-		ball->velocity.y *= -1.0f;
-	} else if(ball->transform.translation.y - ball->height < -1.0f) {
-		ball->transform.translation.y = -2.0f - ball->transform.translation.y + 2.0f * ball->height;
-		ball->velocity.y *= -1.0f;
-	}
-	
-	if(m_LastEvent != Event::LOST) {
-		if(leftPaddleVerticalOverlap > 0.0f && ball->lastHorizontalCollision != Ball::HorizontalCollision::LEFT) {
-			if(leftPaddleHorizontalOverlap > 0.0f && leftPaddleHorizontalOverlap < leftPaddle->height + ball->height) {
-				ball->transform.translation.x = leftPaddle->transform.translation.x + leftPaddle->width + leftPaddleVerticalOverlap;
-				ball->lastHorizontalCollision = Ball::HorizontalCollision::LEFT;
-				
-				glm::vec3 vel = ball->velocity;
-				
-				vel.x *= -1.0f;
-				int signX = (vel.x > 0.0f) - (vel.x < 0.0f);
-				vel.x += 0.02f * signX;
-				
-				vel.y = ((leftPaddle->height + ball->height) / 2.0f - leftPaddleHorizontalOverlap);
-				int signY = (vel.y > 0.0f) - (vel.y < 0.0f);
-				vel.y = std::abs(std::powf(std::abs(vel.y), 1.0f)) * 5.0f;
-				vel.y *= signY;
-				
-				ball->velocity = vel;
-			} else {
-				Lost(Side::LEFT);
-			}
-		}else if(rightPaddleVerticalOverlap > 0.0f && ball->lastHorizontalCollision != Ball::HorizontalCollision::RIGHT) {
-			if(rightPaddleHorizontalOverlap > 0.0f && rightPaddleHorizontalOverlap < rightPaddle->height + ball->height) {
-				ball->transform.translation.x = rightPaddle->transform.translation.x - rightPaddleVerticalOverlap - ball->width;
-				ball->lastHorizontalCollision = Ball::HorizontalCollision::RIGHT;
-				
-				glm::vec3 vel = ball->velocity;
-				
-				vel.x *= -1.02f;
-				vel.y = ((leftPaddle->height + ball->height) / 2.0f - rightPaddleHorizontalOverlap);
-				int sign = (vel.y > 0.0f) - (vel.y < 0.0f);
-				vel.y = std::abs(std::powf(std::abs(vel.y), 1.0f)) * 5.0f;
-				vel.y *= sign;
-				
-				ball->velocity = vel;
-			} else {
-				Lost(Side::RIGHT);
-			}
-		}
-	}
-}
-
-void Game::Reset() {
-	leftPaddle->transform.translation.y = leftPaddle->height / 2.0f;
-	rightPaddle->transform.translation.y = rightPaddle->height / 2.0f;
-	ball->transform.translation.x = ball->width / 2.0f;
-	ball->transform.translation.y = ball->height / 2.0f;
-	ball->velocity = glm::vec3(0.0f);
-	ball->lastVerticalCollision = Ball::VerticalCollision::NONE;
-	ball->lastHorizontalCollision = Ball::HorizontalCollision::NONE;
-	
-	leftPaddle->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	rightPaddle->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	ball->color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	
-	m_LastEvent = Event::RESET;
-	m_GameResetTime = glfwGetTime();
-}
-
-void Game::Start() {
-	ball->velocity.x = 1.0f;
-	ball->velocity.y = (float)rand() / INT_MAX - 0.5f;
-	
-	m_LastEvent = Event::START;
-	m_GameStartTime = glfwGetTime();
-}
-
-void Game::Lost(Side _side) {
-	if(_side == Side::LEFT) {
-		leftPaddle->color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	} else if(_side == Side::RIGHT) {
-		rightPaddle->color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-	}
-	
-	m_LastEvent = Event::LOST;
-	m_GameLostTime = glfwGetTime();
+	 }
 }
