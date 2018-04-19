@@ -105,6 +105,10 @@ float MainGame::RightPaddleHorizontalOverlap() {
 }
 
 void MainGame::UpdatePaddles(double _deltaTime) {
+	float ballSpeedX = std::abs(m_Ball->velocity.x);
+	m_LeftPaddle->speed = (2.0f - m_LeftPaddle->height) / (2.0f - (m_LeftPaddle->width + m_RightPaddle->width + m_Ball->width)) * ballSpeedX * 2.0f;
+	m_RightPaddle->speed = (2.0f - m_RightPaddle->height) / (2.0f - (m_LeftPaddle->width + m_RightPaddle->width + m_Ball->width)) * ballSpeedX * 2.0f;
+	
 	if(m_ControlState == ControlState::KEYBOARD) {
 		if(Window::GetKey(GLFW_KEY_W) || Window::GetKey(GLFW_KEY_UP)) {
 			m_LeftPaddle->transform.Translate(glm::vec3(0.0f, m_LeftPaddle->speed * _deltaTime, 0.0f));
@@ -163,12 +167,12 @@ void MainGame::UpdateBall(double _deltaTime) {
 				glm::vec3 vel = m_Ball->velocity;
 				
 				vel.x *= -1.0f;
-				int signX = (vel.x > 0.0f) - (vel.x < 0.0f);
-				vel.x += 0.02f * signX;
+				//int signX = (vel.x > 0.0f) - (vel.x < 0.0f);
+				vel.x *= 1.005f;
 				
 				vel.y = ((m_LeftPaddle->height + m_Ball->height) / 2.0f - leftPaddleHorizontalOverlap);
 				int signY = (vel.y > 0.0f) - (vel.y < 0.0f);
-				vel.y = std::abs(std::powf(std::abs(vel.y), 1.0f)) * 5.0f;
+				vel.y = std::abs(std::powf(std::abs(vel.y) * 2.0f, 1.5f)) * 5.0f;
 				vel.y *= signY;
 				
 				m_Ball->velocity = vel;
@@ -185,7 +189,7 @@ void MainGame::UpdateBall(double _deltaTime) {
 				vel.x *= -1.02f;
 				vel.y = ((m_LeftPaddle->height + m_Ball->height) / 2.0f - rightPaddleHorizontalOverlap);
 				int sign = (vel.y > 0.0f) - (vel.y < 0.0f);
-				vel.y = std::abs(std::powf(std::abs(vel.y), 1.0f)) * 5.0f;
+				vel.y = std::abs(std::powf(std::abs(vel.y) * 2.0f, 1.5f)) * 5.0f;
 				vel.y *= sign;
 				
 				m_Ball->velocity = vel;
@@ -197,8 +201,6 @@ void MainGame::UpdateBall(double _deltaTime) {
 }
 
 void MainGame::Start() {
-	m_LeftPaddle->speed = 2.0f;
-	m_RightPaddle->speed = 2.0f;
 	m_Ball->velocity.x = 2.0f;
 	m_Ball->velocity.y = 0.0f;
 	
